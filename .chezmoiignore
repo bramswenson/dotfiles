@@ -1,0 +1,30 @@
+README.md
+MIGRATION_PLAN.md
+LICENSE
+.github/
+
+# SOPS-encrypted source files (data only, not deploy targets)
+.ssh/config.d/*.yaml
+
+{{- if ne .chezmoi.os "darwin" }}
+.Brewfile
+.Brewfile.casks
+{{- end }}
+
+{{- if ne .chezmoi.os "linux" }}
+.local/bin/bootstrap-ubuntu
+.local/bin/bootstrap-fedora
+.local/bin/bootstrap-rhel
+.local/bin/upgrade-ubuntu
+.local/bin/upgrade-fedora
+.local/bin/upgrade-rhel
+.local/bin/fix-*
+{{- end }}
+
+{{- if ne .chezmoi.os "darwin" }}
+.local/bin/bootstrap-macos
+{{- end }}
+
+# Work SSH configs deploy for ALL profiles (home ⊃ work)
+# Future: work vs work-remote-ssh will differ by AWS profiles/credentials
+# Future: add home-only configs excluded from work profiles here

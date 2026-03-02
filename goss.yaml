@@ -1,0 +1,477 @@
+{{ $home := .Env.HOME }}
+{{ $os := .Env.GOSS_OS }}
+{{ $profile := .Env.GOSS_PROFILE }}
+{{ $cmd_timeout := 10000 }}{{ if eq $os "darwin" }}{{ $cmd_timeout = 20000 }}{{ end }}
+
+# Dotfiles — goss test suite
+# Run: GOSS_OS=$(uname -s | tr '[:upper:]' '[:lower:]') GOSS_PROFILE=home goss validate
+# Or via mise: mise run test
+
+file:
+  # --- Core dotfiles ---
+  {{ $home }}/.bramrc:
+    exists: true
+    filetype: file
+  {{ $home }}/.gitconfig:
+    exists: true
+    filetype: file
+    contains:
+      - "name = Bram Swenson"
+      - "email = bram@craniumisajar.com"
+      - "signingkey = 0x39FA41E38BDF14DE"
+  {{ $home }}/.gitignore_global:
+    exists: true
+    filetype: file
+  {{ $home }}/.inputrc:
+    exists: true
+    filetype: file
+  {{ $home }}/.vimrc:
+    exists: true
+    filetype: file
+  {{ $home }}/.tmux.conf:
+    exists: true
+    filetype: file
+{{ if eq $os "linux" }}
+  {{ $home }}/.abcde.conf:
+    exists: true
+    filetype: file
+{{ end }}
+
+  # --- Directories ---
+  {{ $home }}/.bramrc.d:
+    exists: true
+    filetype: directory
+  {{ $home }}/.gnupg:
+    exists: true
+    filetype: directory
+    mode: "0700"
+  {{ $home }}/.ssh:
+    exists: true
+    filetype: directory
+    mode: "0700"
+  {{ $home }}/.local/bin:
+    exists: true
+    filetype: directory
+  {{ $home }}/.config:
+    exists: true
+    filetype: directory
+
+  # --- Shell modules ---
+  {{ $home }}/.bramrc.d/aliases.sh:
+    exists: true
+    filetype: file
+  {{ $home }}/.bramrc.d/gpg.sh:
+    exists: true
+    filetype: file
+  {{ $home }}/.bramrc.d/prompt.sh:
+    exists: true
+    filetype: file
+  {{ $home }}/.bramrc.d/envvars.sh:
+    exists: true
+    filetype: file
+  {{ $home }}/.bramrc.d/path.sh:
+    exists: true
+    filetype: file
+
+  # --- Config files ---
+  {{ $home }}/.config/starship.toml:
+    exists: true
+    filetype: file
+  {{ $home }}/.config/mise/config.toml:
+    exists: true
+    filetype: file
+  {{ $home }}/.gnupg/gpg.conf:
+    exists: true
+    filetype: file
+  {{ $home }}/.gnupg/gpg-agent.conf:
+    exists: true
+    filetype: file
+  {{ $home }}/.gnupg/scdaemon.conf:
+    exists: true
+    filetype: file
+  {{ $home }}/.gnupg/sshcontrol:
+    exists: true
+    filetype: file
+  {{ $home }}/.ssh/config:
+    exists: true
+    filetype: file
+
+  # --- Cross-platform executables (mode 0755) ---
+  {{ $home }}/.local/bin/bmux:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/bootstrap-remote:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/skel:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-aws-cli:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-claude-code:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-discord:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-docker:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-firefox:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-gh-cli:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-google-chrome:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-google-cloud-sdk:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-just:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-keybase:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-mozillavpn:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-nerd-fonts:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-postgresql:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-rustlang:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-signal:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-slack:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-starship-prompt:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-uv:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-vscode:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-yubikey:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/install-zoom:
+    exists: true
+    filetype: file
+    mode: "0755"
+
+  # --- Linux-only executables ---
+{{ if eq $os "linux" }}
+  {{ $home }}/.local/bin/bootstrap-ubuntu:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/bootstrap-fedora:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/bootstrap-rhel:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/upgrade-ubuntu:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/upgrade-fedora:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/upgrade-rhel:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/fix-firefox-yubikey-locking:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/fix-keybase-apt-key:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/fix-popping-audio-in-fedora:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.local/bin/fix-slack-apt-key:
+    exists: true
+    filetype: file
+    mode: "0755"
+{{ end }}
+
+  # --- macOS-only ---
+{{ if eq $os "darwin" }}
+  {{ $home }}/.local/bin/bootstrap-macos:
+    exists: true
+    filetype: file
+    mode: "0755"
+  {{ $home }}/.Brewfile:
+    exists: true
+    filetype: file
+  {{ $home }}/.Brewfile.casks:
+    exists: true
+    filetype: file
+  /opt/homebrew/bin/bash:
+    exists: true
+    filetype: symlink
+{{ end }}
+
+  # --- Work configs (all profiles include work) ---
+  {{ $home }}/.ssh/config.d/murmuration_ssh_config:
+    exists: true
+    filetype: file
+    contains:
+      - "murmuration"
+  {{ $home }}/.ssh/config.d/civiqs_ssh_config:
+    exists: true
+    filetype: file
+    contains:
+      - "civiqs"
+
+  # --- work.sh exports PROFILE ---
+  {{ $home }}/.bramrc.d/work.sh:
+    exists: true
+    filetype: file
+
+  # --- shell startup chain: bash_profile -> bashrc -> bramrc ---
+  {{ $home }}/.bash_profile:
+    exists: true
+    filetype: file
+    contains:
+      - ".bashrc"
+  {{ $home }}/.bashrc:
+    exists: true
+    filetype: file
+    contains:
+      - ".bramrc"
+
+command:
+  # --- Cross-platform: mise-managed tools ---
+  mise node installed:
+    exec: "bash -l -c 'node --version'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  mise python installed:
+    exec: "bash -l -c 'python --version'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  mise ruby installed:
+    exec: "bash -l -c 'ruby --version'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  mise sops installed:
+    exec: "bash -l -c 'which sops'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  mise yq installed:
+    exec: "bash -l -c 'which yq'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  mise shellcheck installed:
+    exec: "bash -l -c 'which shellcheck'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  mise goss installed:
+    exec: "bash -l -c 'which goss'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  mise age installed:
+    exec: "bash -l -c 'which age'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+
+  # --- Cross-platform: core tools ---
+  git installed:
+    exec: "bash -l -c 'which git'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  curl installed:
+    exec: "bash -l -c 'which curl'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  vim installed:
+    exec: "bash -l -c 'which vim'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  tmux installed:
+    exec: "bash -l -c 'which tmux'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  jq installed:
+    exec: "bash -l -c 'which jq'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  gpg installed:
+    exec: "bash -l -c 'which gpg'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  htop installed:
+    exec: "bash -l -c 'which htop'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  tree installed:
+    exec: "bash -l -c 'which tree'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  mise installed:
+    exec: "bash -l -c 'which mise'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+
+{{ if eq $os "darwin" }}
+  # --- macOS: brew formulas ---
+  brew bash installed:
+    exec: "bash -l -c 'which bash'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+    stdout:
+      - /opt/homebrew
+  brew go installed:
+    exec: "bash -l -c 'which go'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  brew starship installed:
+    exec: "bash -l -c 'which starship'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  brew aws installed:
+    exec: "bash -l -c 'which aws'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  brew neovim installed:
+    exec: "bash -l -c 'which nvim'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  brew pre-commit installed:
+    exec: "bash -l -c 'which pre-commit'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+{{ end }}
+
+{{ if eq $os "linux" }}
+  # --- Linux: OS-level packages (available on ubuntu-latest runners) ---
+  unzip installed:
+    exec: "bash -l -c 'which unzip'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+{{ end }}
+
+  # --- Shell configuration functional tests ---
+  login shell sources bramrc without error:
+    exec: "bash -l -c 'true'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+
+  EDITOR is set after sourcing:
+    exec: "bash -l -c 'echo $EDITOR'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+    stdout:
+      - vim
+
+  GOPATH is set:
+    exec: "bash -l -c 'echo $GOPATH'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+    stdout:
+      - {{ $home }}/go
+
+  local bin is in PATH:
+    exec: "bash -l -c 'echo $PATH'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+    stdout:
+      - .local/bin
+
+  git aliases work:
+    exec: "bash -l -c 'shopt -s expand_aliases && type gs'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+    stdout:
+      - "git status"
+
+  git config user.name:
+    exec: "git config --global user.name"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+    stdout:
+      - "Bram Swenson"
+
+  git config user.email:
+    exec: "git config --global user.email"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+    stdout:
+      - "bram@craniumisajar.com"
+
+  install scripts accept --help:
+    exec: "bash -c 'for s in {{ $home }}/.local/bin/install-*; do \"$s\" -h > /dev/null 2>&1 || echo \"FAIL: $s\"; done'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+    stdout: []
+
+  scripts pass shellcheck:
+    exec: "bash -l -c 'shellcheck -x --severity=warning {{ $home }}/.local/bin/*'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+
+  DOTFILES_PROFILE is set:
+    exec: "bash -l -c 'env | grep DOTFILES_PROFILE'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+    stdout:
+      - "DOTFILES_PROFILE={{ $profile }}"
+
+  vim-plug installed:
+    exec: "ls {{ $home }}/.vim/autoload/plug.vim"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+
+  vim plugins installed:
+    exec: "ls {{ $home }}/.vim/plugged/"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+    stdout:
+      - vim-airline
+      - nerdtree
+      - vim-fugitive
+      - vim-gotham

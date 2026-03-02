@@ -1,0 +1,51 @@
+[tools]
+age = "latest"
+gitleaks = "latest"
+goss = "latest"
+hk = "latest"
+pkl = "latest"
+shellcheck = "latest"
+sops = "latest"
+yq = "latest"
+
+[tasks.lint]
+description = "Lint all shell scripts with shellcheck"
+run = "find dot_local/bin -name 'executable_*' -exec shellcheck -x {} +"
+
+[tasks.test]
+description = "Run goss tests against deployed dotfiles"
+run = "GOSS_OS=$(uname -s | tr '[:upper:]' '[:lower:]') GOSS_PROFILE=${GOSS_PROFILE:-home} GOSS_USE_ALPHA=1 goss validate --format tap"
+
+[tasks.secrets-check]
+description = "Verify secrets.yaml is encrypted"
+run = "sops -d secrets.yaml > /dev/null 2>&1 && echo 'secrets.yaml is valid' || echo 'secrets.yaml cannot be decrypted (is it encrypted?)'"
+
+[tasks.rotate-ci-key]
+description = "Rotate the age CI key: generate, store in secrets.yaml, upload to GitHub, re-encrypt"
+run = """
+set -euo pipefail
+
+echo "Generating new age keypair..."
+AGE_OUTPUT=$(age-keygen 2>&1)
+AGE_PUBLIC_KEY=$(echo "$AGE_OUTPUT" | grep "public key:" | awk '{print $NF}')
+AGE_PRIVATE_KEY=$(echo "$AGE_OUTPUT" | grep "^AGE-SECRET-KEY-")
+
+echo "Storing age keys in secrets.yaml (requires YubiKey)..."
+sops set secrets.yaml '["ci_age_public_key"]' "\"$AGE_PUBLIC_KEY\""
+sops set secrets.yaml '["ci_age_private_key"]' "\"$AGE_PRIVATE_KEY\""
+
+echo "Updating .sops.yaml with new age public key..."
+RULE_REGEX='private_dot_ssh/config\\.d/.*\\.yaml$'
+yq -i "(.creation_rules[] | select(.path_regex == \"$RULE_REGEX\")).age = \"$AGE_PUBLIC_KEY\"" .sops.yaml
+
+REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+echo "Uploading age private key to GitHub Actions ($REPO)..."
+echo "$AGE_PRIVATE_KEY" | gh secret set SOPS_AGE_KEY --repo "$REPO"
+
+echo "Re-encrypting SSH config files with new keys..."
+for f in private_dot_ssh/config.d/*.yaml; do
+  [ -f "$f" ] && sops updatekeys -y "$f"
+done
+
+echo "Done! Commit and push the updated .sops.yaml and encrypted files."
+"""

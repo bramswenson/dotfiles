@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Install Google Cloud SDK from package repo.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+rhel() {
+  if [[ ! -f /etc/yum.repos.d/google-cloud-sdk.repo ]]; then
+    sudo tee /etc/yum.repos.d/google-cloud-sdk.repo <<EOF
+[google-cloud-cli]
+name=Google Cloud CLI
+baseurl=https://packages.cloud.google.com/yum/repos/cloud-sdk-el9-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=0
+gpgkey=https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+    sudo dnf makecache
+  fi
+  if ! command -v gcloud &>/dev/null; then
+    sudo dnf install -y google-cloud-cli
+  fi
+}
+
+ubuntu() {
+  if [[ ! -f /etc/apt/sources.list.d/google-cloud-sdk.list ]]; then
+    curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+      | sudo gpg --dearmor -o /etc/apt/keyrings/cloud.google.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" \
+      | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
+    sudo apt-get update --yes --quiet
+  fi
+  if ! command -v gcloud &>/dev/null; then
+    sudo apt install --yes --quiet google-cloud-sdk
+  fi
+}
+
+main() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    if ! command -v gcloud &>/dev/null; then
+      curl -fsSL https://sdk.cloud.google.com | bash
+    fi
+    return 0
+  fi
+
+  case "$(lsb_release -is 2>/dev/null)" in
+    RedHatEnterprise|Fedora) rhel ;;
+    Ubuntu) ubuntu ;;
+    *) die "unsupported distro" ;;
+  esac
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

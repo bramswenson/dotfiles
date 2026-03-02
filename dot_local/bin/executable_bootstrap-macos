@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Bootstrap a macOS workstation for Bram Swenson.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  # Install Homebrew if not present
+  if ! command -v brew &>/dev/null; then
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
+  fi
+
+  # Install formulas from Brewfile
+  if [ -f "${HOME}/.Brewfile" ]; then
+    brew bundle --file="${HOME}/.Brewfile"
+  fi
+
+  # Install casks from Brewfile.casks
+  if [ -f "${HOME}/.Brewfile.casks" ]; then
+    brew bundle --file="${HOME}/.Brewfile.casks"
+  fi
+
+  # Set Homebrew bash as default shell
+  local brew_bash
+  brew_bash="$(brew --prefix)/bin/bash"
+  if ! grep -qF "${brew_bash}" /etc/shells; then
+    echo "${brew_bash}" | sudo tee -a /etc/shells
+  fi
+  if [ "${SHELL}" != "${brew_bash}" ]; then
+    chsh -s "${brew_bash}"
+  fi
+
+  # Install mise if not present
+  if ! command -v mise &>/dev/null; then
+    curl https://mise.run | sh
+  fi
+
+  echo "macOS bootstrap complete."
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

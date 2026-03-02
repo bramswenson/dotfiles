@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Install Visual Studio Code from package repo.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+rhel() {
+  if [[ ! -f /etc/yum.repos.d/vscode.repo ]]; then
+    sudo tee /etc/yum.repos.d/vscode.repo <<EOF
+[code]
+name=Visual Studio Code
+baseurl=https://packages.microsoft.com/yumrepos/vscode
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+EOF
+    sudo dnf update -y
+  fi
+  if ! command -v code &>/dev/null; then
+    sudo dnf install -y code
+  fi
+}
+
+ubuntu() {
+  if [[ ! -f /etc/apt/keyrings/vscode.gpg ]]; then
+    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
+      | sudo gpg --dearmor --yes -o /etc/apt/keyrings/vscode.gpg
+  fi
+  if [[ ! -f /etc/apt/sources.list.d/vscode.list ]]; then
+    sudo tee /etc/apt/sources.list.d/vscode.list <<EOF
+deb [arch=amd64 signed-by=/etc/apt/keyrings/vscode.gpg] https://packages.microsoft.com/repos/vscode stable main
+EOF
+    sudo apt-get update --yes --quiet
+  fi
+  if ! command -v code &>/dev/null; then
+    sudo apt install --yes --quiet code
+  fi
+}
+
+darwin() {
+  if [[ ! -d "/Applications/Visual Studio Code.app" ]]; then
+    local -r zipfile="/tmp/vscode.zip"
+    curl -fsSL -o "${zipfile}" "https://update.code.visualstudio.com/latest/darwin-universal/stable"
+    unzip -qq -o "${zipfile}" -d /Applications/
+    rm "${zipfile}"
+  fi
+}
+
+main() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    darwin
+    return 0
+  fi
+
+  case "$(lsb_release -is 2>/dev/null)" in
+    RedHatEnterprise|Fedora) rhel ;;
+    Ubuntu) ubuntu ;;
+    *) die "unsupported distro" ;;
+  esac
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

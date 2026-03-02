@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [name]
+
+DESCRIPTION:
+
+  Create a tmux session with predefined windows.
+
+OPTIONS:
+
+  -h  Show this help message.
+
+ARGUMENTS:
+
+  name  Session name (default: current directory name).
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  local -r name="${1:-$(basename "$(pwd)" | sed -e 's/\./_/g')}"
+  local -r tmux_cmd="$(command -v tmux)"
+
+  "${tmux_cmd}" new-session -d -s "${name}"
+  "${tmux_cmd}" rename-window -t "${name}:0" 'editz'
+  "${tmux_cmd}" new-window -t "${name}:1" -n 'shelz'
+  "${tmux_cmd}" new-window -t "${name}:2" -n 'servz'
+  "${tmux_cmd}" select-window -t "${name}:0"
+  "${tmux_cmd}" -2 attach-session -t "${name}"
+}
+
+while getopts "h" opt; do
+  case "${opt}" in
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main "$@"

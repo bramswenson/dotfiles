@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Install Signal Desktop from official repo.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    if [[ ! -d "/Applications/Signal.app" ]]; then
+      local -r dmg="/tmp/signal.dmg"
+      curl -fsSL -o "${dmg}" "https://updates.signal.org/desktop/signal-desktop-mac-universal-latest.dmg"
+      hdiutil attach "${dmg}" -nobrowse -quiet
+      cp -R "/Volumes/Signal/Signal.app" /Applications/
+      hdiutil detach "/Volumes/Signal" -quiet
+      rm "${dmg}"
+    fi
+    return 0
+  fi
+
+  if [[ ! -f /etc/apt/keyrings/signal.gpg ]]; then
+    curl -fsSL https://updates.signal.org/desktop/apt/keys.asc \
+      | sudo gpg --dearmor --yes -o /etc/apt/keyrings/signal.gpg
+  fi
+  if [[ ! -f /etc/apt/sources.list.d/signal.list ]]; then
+    sudo tee /etc/apt/sources.list.d/signal.list <<EOF
+deb [arch=amd64 signed-by=/etc/apt/keyrings/signal.gpg] https://updates.signal.org/desktop/apt xenial main
+EOF
+    sudo apt-get update --yes --quiet
+  fi
+  if ! command -v signal-desktop &>/dev/null; then
+    sudo apt install --yes --quiet signal-desktop-beta
+  fi
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

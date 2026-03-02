@@ -1,0 +1,116 @@
+set nocompatible
+filetype off
+syntax off
+
+" Initialize vim-plug
+if empty(glob('~/.vim/autoload/plug.vim'))
+  silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+        \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  autocmd VimEnter * PlugInstall | source $MYVIMRC
+endif
+
+call plug#begin('~/.vim/plugged')
+
+" vim extensions
+Plug 'tpope/vim-endwise'
+Plug 'bling/vim-airline'
+
+" file and text searching
+Plug 'scrooloose/nerdtree'
+
+" git
+Plug 'tpope/vim-fugitive'
+
+" ruby and rails
+Plug 'tpope/vim-rails'
+
+" python
+Plug 'psf/black'
+Plug 'brentyi/isort.vim'
+
+" syntax
+Plug 'jvirtanen/vim-hcl'
+Plug 'tpope/vim-markdown'
+Plug 'pangloss/vim-javascript'
+Plug 'leafgarland/typescript-vim'
+Plug 'cespare/vim-toml'
+Plug 'chrisbra/unicode.vim'
+Plug 'hashivim/vim-hashicorp-tools'
+Plug 'vim-scripts/nginx.vim'
+Plug 'aliou/bats.vim'
+Plug 'NoahTheDuke/vim-just'
+
+" colors
+Plug 'vim-scripts/Distinguished'
+Plug 'chriskempson/tomorrow-theme', { 'rtp': 'vim/' }
+Plug 'chriskempson/base16-vim'
+Plug 'whatyouhide/vim-gotham'
+
+call plug#end()
+
+syntax on
+filetype plugin indent on
+set expandtab
+set tabstop=2
+set shiftwidth=2
+set autoindent
+set list
+set listchars=
+let mapleader = ","
+set mouse-=a
+
+set scrolloff=3                " keep 3 lines when scrolling
+set ai                         " set auto-indenting on for programming
+
+set showcmd                    " display incomplete commands
+set nobackup                   " do not keep a backup file
+set number                     " show line numbers
+set ruler                      " show the current row and column
+
+set hlsearch                   " highlight searches
+set incsearch                  " do incremental searching
+set showmatch                  " jump to matches when entering regexp
+set ignorecase                 " ignore case when searching
+set smartcase                  " no ignorecase if Uppercase char present
+
+set visualbell t_vb=           " turn off error beep/flash
+set novisualbell               " turn off visual bell
+
+set backspace=indent,eol,start " make that backspace key work the way it should
+
+syntax on                      " turn syntax highlighting on by default
+filetype on                    " detect type of file
+
+set t_Co=256                   " set colors to 256
+silent! colorscheme gotham256
+
+" Setup status bar - airline
+set laststatus=2
+let g:airline#extensions#enabled = 1
+
+" Show trailing whitepace and spaces before a tab:
+highlight ExtraWhitespace ctermbg=red guibg=red
+autocmd Syntax * syn match ExtraWhitespace /\s\+$\| \+\ze\t/
+
+" make vim+ruby happy
+set re=1
+
+" keybindings
+map <C-o> :tabnew<space>
+map <C-h> :tabprev<CR>
+map <C-l> :tabnext<CR>
+map <C-n> :NERDTree<CR>
+map _ :s/^\/\/\\|^--\\|^> \\|^[#"%!;]//<CR>:nohlsearch<CR>
+map - :s/^/#/<CR>:nohlsearch<CR>
+
+" Filetypes
+
+" If the filetype is Makefile then we need to use tabs
+autocmd FileType make setlocal noexpandtab
+
+autocmd BufNewFile,BufRead Vagrantfile,Vagrantfile.* set filetype=ruby
+autocmd Filetype python setlocal expandtab shiftwidth=4 softtabstop=4
+autocmd BufRead,BufNewFile *.md setlocal spell
+autocmd BufNewFile,BufReadPost Dockerfile.* set filetype=dockerfile
+autocmd BufNewFile,BufReadPost *.ctmpl set filetype=gotexttmpl
+autocmd BufNewFile,BufRead /etc/nginx/*,/usr/local/nginx/conf/*,*nginx.conf if &ft == '' | setfiletype nginx | endif

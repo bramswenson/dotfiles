@@ -1,0 +1,27 @@
+# Brewfile — macOS formulas via Homebrew
+# Managed by chezmoi
+
+# Core tools
+brew "bash"
+brew "coreutils"
+brew "curl"
+brew "git"
+brew "git-lfs"
+brew "gnupg"
+brew "htop"
+brew "jq"
+brew "neovim"
+brew "pinentry-mac"
+brew "pre-commit"
+brew "tmux"
+brew "tree"
+brew "vim"
+
+# Development
+brew "go"
+brew "mise"
+brew "shellcheck"
+brew "starship"
+
+# Cloud
+brew "awscli"

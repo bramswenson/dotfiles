@@ -1,0 +1,12 @@
+.vscode
+*.swp
+*.log
+/node_modules/
+/.bundle/
+.vimtags
+/**/.terraform/*
+.terraformrc
+.aws
+*.md.orig.*
+*.md.toc.*
+**/__pycache__/

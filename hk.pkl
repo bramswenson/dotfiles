@@ -1,0 +1,33 @@
+amends "package://github.com/jdx/hk/releases/download/v1.36.0/hk@1.36.0#/Config.pkl"
+
+hooks {
+  ["pre-commit"] {
+    steps {
+      ["gitleaks"] {
+        check = "gitleaks detect --no-git --verbose"
+      }
+      ["sops-check"] {
+        check = #"""
+          bash -c '
+            [ -z "{{files}}" ] && exit 0
+            failed=0
+            for f in {{files}}; do
+              status=$(sops filestatus "$f" 2>/dev/null) || continue
+              if echo "$status" | grep -q "\"encrypted\":true"; then
+                if ! sops -d "$f" > /dev/null 2>&1; then
+                  echo "FAIL: $f — SOPS decrypt/MAC verification failed"
+                  failed=1
+                fi
+              fi
+            done
+            exit $failed
+          '
+        """#
+      }
+      ["shellcheck"] {
+        glob = List("dot_local/bin/executable_*")
+        check = "shellcheck -x {{files}}"
+      }
+    }
+  }
+}

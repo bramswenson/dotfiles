@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d] [-v <version>] [-f <fonts>]
+
+DESCRIPTION:
+
+  Install Nerd Fonts from GitHub releases.
+
+OPTIONS:
+
+  -f <fonts>    Space-separated list of font names.
+  -v <version>  Nerd Fonts version (default: ${VERSION}).
+  -h            Show this help message.
+  -d            Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+install_font() {
+  local -r name="$1"
+  local -r url="https://github.com/ryanoasis/nerd-fonts/releases/download/v${VERSION}/${name}.zip"
+  if [[ ! -d "${FONT_DIR}/${name}" ]]; then
+    curl -fsSL -o "/tmp/${name}.zip" "${url}" || { echo "Failed to download ${name}"; return 1; }
+    mkdir -p "${FONT_DIR}/${name}"
+    unzip -qq -o "/tmp/${name}.zip" -d "${FONT_DIR}/${name}"
+    rm "/tmp/${name}.zip"
+    echo "${name} installed."
+  else
+    echo "${name} already installed."
+  fi
+}
+
+main() {
+  mkdir -p "${FONT_DIR}"
+  for font in ${FONTS}; do
+    install_font "${font}"
+  done
+  if [[ "$(uname)" != "Darwin" ]]; then
+    fc-cache -v 2>/dev/null || true
+  fi
+}
+
+if [[ "$(uname)" == "Darwin" ]]; then
+  FONT_DIR="${HOME}/Library/Fonts"
+else
+  FONT_DIR="${HOME}/.local/share/fonts"
+fi
+FONTS="CascadiaCode DejaVuSansMono FiraCode FiraMono Hack JetBrainsMono SourceCodePro"
+VERSION="3.4.0"
+
+while getopts "hdf:v:" opt; do
+  case "${opt}" in
+    f) FONTS="${OPTARG}" ;;
+    v) VERSION="${OPTARG}" ;;
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

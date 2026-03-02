@@ -1,0 +1,32 @@
+# PATH configuration
+# Managed by chezmoi — edits will be overwritten
+
+# User local binaries
+export PATH="${HOME}/.local/bin:${PATH}"
+
+# Go
+export GOPATH="${HOME}/go"
+export PATH="${PATH}:/usr/local/go/bin:${GOPATH}/bin"
+
+# Rust/Cargo
+if [ -f "${HOME}/.cargo/env" ]; then
+  source "${HOME}/.cargo/env"
+fi
+
+# Krew (kubectl plugin manager)
+export PATH="${HOME}/.krew/bin:${PATH}"
+
+{{- if eq .chezmoi.os "linux" }}
+# PostgreSQL (Linux — RHEL/Fedora pgdg packages)
+# Finds the highest installed pgsql version automatically
+for pgdir in /usr/pgsql-*/bin; do
+  if [ -d "${pgdir}" ]; then
+    export PATH="${pgdir}:${PATH}"
+  fi
+done
+{{- end }}
+
+{{- if eq .chezmoi.os "darwin" }}
+# Homebrew
+eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv 2>/dev/null)"
+{{- end }}

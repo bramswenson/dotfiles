@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d] [-v <version>]
+
+DESCRIPTION:
+
+  Install Slack from package repo.
+
+OPTIONS:
+
+  -v <version>  Version to install (default: ${VERSION}).
+  -h            Show this help message.
+  -d            Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+rhel() {
+  local -r filename="slack-${VERSION}-0.1.el8.x86_64.rpm"
+  local -r url="https://downloads.slack-edge.com/releases/linux/${VERSION}/prod/x64/${filename}"
+  if ! command -v slack &>/dev/null; then
+    curl -fsSL -o "/tmp/${filename}" "${url}"
+    sudo dnf install -y libappindicator-gtk3 2>/dev/null || true
+    sudo rpm -i --force "/tmp/${filename}"
+    rm "/tmp/${filename}"
+  fi
+}
+
+ubuntu() {
+  local -r filename="slack-desktop-${VERSION}-amd64.deb"
+  local -r url="https://downloads.slack-edge.com/desktop-releases/linux/x64/${VERSION}/${filename}"
+  if ! command -v slack &>/dev/null; then
+    curl -fsSL -o "/tmp/${filename}" "${url}"
+    sudo apt install --yes --quiet "/tmp/${filename}"
+    rm "/tmp/${filename}"
+  fi
+}
+
+darwin() {
+  if [[ ! -d "/Applications/Slack.app" ]]; then
+    local -r dmg="/tmp/slack.dmg"
+    curl -fsSL -o "${dmg}" "https://slack.com/ssb/download-osx-universal"
+    hdiutil attach "${dmg}" -nobrowse -quiet
+    cp -R "/Volumes/Slack/Slack.app" /Applications/
+    hdiutil detach "/Volumes/Slack" -quiet
+    rm "${dmg}"
+  fi
+}
+
+main() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    darwin
+    return 0
+  fi
+
+  case "$(lsb_release -is 2>/dev/null)" in
+    RedHatEnterprise|Fedora) rhel ;;
+    Ubuntu) ubuntu ;;
+    *) die "unsupported distro" ;;
+  esac
+}
+
+VERSION="4.43.51"
+
+while getopts "hdv:" opt; do
+  case "${opt}" in
+    v) VERSION="${OPTARG}" ;;
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main
