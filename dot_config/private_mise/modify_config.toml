@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# chezmoi modify_ script for ~/.config/mise/config.toml
+# Ensures our required tools and settings exist without clobbering
+# existing host configuration. Reads current file from stdin.
+set -euo pipefail
+
+# Our required entries — add new ones here
+REQUIRED_TOOLS=(
+  'node = "latest"'
+  'python = "latest"'
+  'ruby = "latest"'
+)
+REQUIRED_SETTINGS=(
+  'experimental = true'
+)
+
+# Read existing content from stdin (empty if file doesn't exist)
+existing="$(cat)"
+
+# If empty, build from scratch
+if [ -z "${existing}" ]; then
+  echo "[tools]"
+  for entry in "${REQUIRED_TOOLS[@]}"; do
+    echo "${entry}"
+  done
+  echo ""
+  echo "[settings]"
+  for entry in "${REQUIRED_SETTINGS[@]}"; do
+    echo "${entry}"
+  done
+  exit 0
+fi
+
+# File exists — ensure sections and keys are present
+output="${existing}"
+
+# Ensure [tools] section exists
+if ! echo "${output}" | grep -q '^\[tools\]'; then
+  output="${output}"$'\n\n[tools]'
+fi
+
+# Ensure [settings] section exists
+if ! echo "${output}" | grep -q '^\[settings\]'; then
+  output="${output}"$'\n\n[settings]'
+fi
+
+# Add missing tool entries after [tools] header
+for entry in "${REQUIRED_TOOLS[@]}"; do
+  key="${entry%% =*}"
+  if ! echo "${output}" | grep -q "^${key} "; then
+    output="$(echo "${output}" | sed "/^\[tools\]/a ${entry}")"
+  fi
+done
+
+# Add missing setting entries after [settings] header
+for entry in "${REQUIRED_SETTINGS[@]}"; do
+  key="${entry%% =*}"
+  if ! echo "${output}" | grep -q "^${key} "; then
+    output="$(echo "${output}" | sed "/^\[settings\]/a ${entry}")"
+  fi
+done
+
+echo "${output}"
