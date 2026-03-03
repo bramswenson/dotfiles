@@ -27,7 +27,7 @@ export HISTFILESIZE=100000
 export HISTSIZE=5000
 export HISTCONTROL=erasedups:ignoredups:ignorespace
 shopt -s histappend
-PROMPT_COMMAND='history -a'
+PROMPT_COMMAND="${PROMPT_COMMAND:+${PROMPT_COMMAND};}history -a"
 
 # Shell options
 shopt -s checkwinsize
