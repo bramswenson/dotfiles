@@ -16,13 +16,13 @@ $kubernetes\
 $docker_context\
 $package\
 $line_break\
-[╰─ ](fg:#394260)$character"""
+[╰─](fg:#394260)$character"""
 
 right_format = """$cmd_duration$time"""
 
 [character]
-success_symbol = '[🛸 ❯](fg:#a3aed2)'
-error_symbol = '[🛸 ❯](bold red)'
+success_symbol = '[ 🛸 ❯](fg:#a3aed2)'
+error_symbol = '[ 🛸 ❯](bold red)'
 
 [directory]
 style = "bold fg:#769ff0"
