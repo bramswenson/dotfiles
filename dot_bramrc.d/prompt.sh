@@ -10,3 +10,8 @@ fi
 if command -v mise &>/dev/null; then
   eval "$(mise activate bash)"
 fi
+
+# Activate direnv (per-directory environment)
+if command -v direnv &>/dev/null; then
+  eval "$(direnv hook bash)"
+fi

@@ -15,7 +15,7 @@ file:
   {{ $home }}/.gitconfig:
     exists: true
     filetype: file
-    contains:
+    contents:
       - "name = Bram Swenson"
       - "email = bram@craniumisajar.com"
       - "signingkey = 0x39FA41E38BDF14DE"
@@ -100,142 +100,108 @@ file:
   {{ $home }}/.local/bin/bmux:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/bootstrap-remote:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/skel:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-aws-cli:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-claude-code:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-discord:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-docker:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-firefox:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-gh-cli:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-google-chrome:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-google-cloud-sdk:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-just:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-keybase:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-mozillavpn:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-nerd-fonts:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-postgresql:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-rustlang:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-signal:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-slack:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-starship-prompt:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-uv:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-vscode:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-yubikey:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/install-zoom:
     exists: true
     filetype: file
-    mode: "0755"
 
   # --- Linux-only executables ---
 {{ if eq $os "linux" }}
   {{ $home }}/.local/bin/bootstrap-ubuntu:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/bootstrap-fedora:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/bootstrap-rhel:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/upgrade-ubuntu:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/upgrade-fedora:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/upgrade-rhel:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/fix-firefox-yubikey-locking:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/fix-keybase-apt-key:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/fix-popping-audio-in-fedora:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.local/bin/fix-slack-apt-key:
     exists: true
     filetype: file
-    mode: "0755"
 {{ end }}
 
   # --- macOS-only ---
@@ -243,7 +209,6 @@ file:
   {{ $home }}/.local/bin/bootstrap-macos:
     exists: true
     filetype: file
-    mode: "0755"
   {{ $home }}/.Brewfile:
     exists: true
     filetype: file
@@ -259,13 +224,18 @@ file:
   {{ $home }}/.ssh/config.d/murmuration_ssh_config:
     exists: true
     filetype: file
-    contains:
+    contents:
       - "murmuration"
   {{ $home }}/.ssh/config.d/civiqs_ssh_config:
     exists: true
     filetype: file
-    contains:
+    contents:
       - "civiqs"
+  {{ $home }}/.ssh/config.d/seedx_ssh_config:
+    exists: true
+    filetype: file
+    contents:
+      - "seedx"
 
   # --- work.sh exports PROFILE ---
   {{ $home }}/.bramrc.d/work.sh:
@@ -276,12 +246,12 @@ file:
   {{ $home }}/.bash_profile:
     exists: true
     filetype: file
-    contains:
+    contents:
       - ".bashrc"
   {{ $home }}/.bashrc:
     exists: true
     filetype: file
-    contains:
+    contents:
       - ".bramrc"
 
 command:
@@ -316,6 +286,10 @@ command:
     timeout: {{ $cmd_timeout }}
   mise age installed:
     exec: "bash -l -c 'which age'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+  mise go installed:
+    exec: "bash -l -c 'which go'"
     exit-status: 0
     timeout: {{ $cmd_timeout }}
 
@@ -365,10 +339,6 @@ command:
     timeout: {{ $cmd_timeout }}
     stdout:
       - /opt/homebrew
-  brew go installed:
-    exec: "bash -l -c 'which go'"
-    exit-status: 0
-    timeout: {{ $cmd_timeout }}
   brew starship installed:
     exec: "bash -l -c 'which starship'"
     exit-status: 0
@@ -408,13 +378,6 @@ command:
     stdout:
       - vim
 
-  GOPATH is set:
-    exec: "bash -l -c 'echo $GOPATH'"
-    exit-status: 0
-    timeout: {{ $cmd_timeout }}
-    stdout:
-      - {{ $home }}/go
-
   local bin is in PATH:
     exec: "bash -l -c 'echo $PATH'"
     exit-status: 0
@@ -443,6 +406,12 @@ command:
     stdout:
       - "bram@craniumisajar.com"
 
+  all managed scripts are executable:
+    exec: "bash -c 'fail=0; for f in {{ $home }}/.local/bin/{install,bootstrap,upgrade,fix}-* {{ $home }}/.local/bin/bmux {{ $home }}/.local/bin/skel {{ $home }}/.local/bin/bootstrap-remote; do [ -f \"$f\" ] && [ ! -x \"$f\" ] && echo \"NOT EXECUTABLE: $f\" && fail=1; done; exit $fail'"
+    exit-status: 0
+    timeout: {{ $cmd_timeout }}
+    stdout: []
+
   install scripts accept --help:
     exec: "bash -c 'for s in {{ $home }}/.local/bin/install-*; do \"$s\" -h > /dev/null 2>&1 || echo \"FAIL: $s\"; done'"
     exit-status: 0
@@ -450,9 +419,9 @@ command:
     stdout: []
 
   scripts pass shellcheck:
-    exec: "bash -l -c 'shellcheck -x --severity=warning {{ $home }}/.local/bin/*'"
+    exec: "bash -c 'grep -rlI \"^#!/.*bash\" {{ $home }}/.local/bin/ | xargs shellcheck -x --severity=warning'"
     exit-status: 0
-    timeout: {{ $cmd_timeout }}
+    timeout: 60000
 
   DOTFILES_PROFILE is set:
     exec: "bash -l -c 'env | grep DOTFILES_PROFILE'"

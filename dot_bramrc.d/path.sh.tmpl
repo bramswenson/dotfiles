@@ -1,27 +1,27 @@
 # PATH configuration
 # Managed by chezmoi — edits will be overwritten
 
+# Guard against duplicate PATH entries on re-source (tmux panes, nested shells)
+_path_prepend() { case ":${PATH}:" in *:"$1":*) ;; *) export PATH="$1:${PATH}" ;; esac; }
+_path_append()  { case ":${PATH}:" in *:"$1":*) ;; *) export PATH="${PATH}:$1" ;; esac; }
+
 # User local binaries
-export PATH="${HOME}/.local/bin:${PATH}"
+_path_prepend "${HOME}/.local/bin"
 
-# Go
-export GOPATH="${HOME}/go"
-export PATH="${PATH}:/usr/local/go/bin:${GOPATH}/bin"
-
-# Rust/Cargo
+# Rust/Cargo (cargo install binaries)
 if [ -f "${HOME}/.cargo/env" ]; then
   source "${HOME}/.cargo/env"
 fi
 
 # Krew (kubectl plugin manager)
-export PATH="${HOME}/.krew/bin:${PATH}"
+_path_prepend "${HOME}/.krew/bin"
 
 {{- if eq .chezmoi.os "linux" }}
 # PostgreSQL (Linux — RHEL/Fedora pgdg packages)
 # Finds the highest installed pgsql version automatically
 for pgdir in /usr/pgsql-*/bin; do
   if [ -d "${pgdir}" ]; then
-    export PATH="${pgdir}:${PATH}"
+    _path_prepend "${pgdir}"
   fi
 done
 {{- end }}
@@ -30,3 +30,5 @@ done
 # Homebrew
 eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv 2>/dev/null)"
 {{- end }}
+
+unset -f _path_prepend _path_append

@@ -6,6 +6,7 @@ set -euo pipefail
 
 # Our required entries — add new ones here
 REQUIRED_TOOLS=(
+  'go = "latest"'
   'node = "latest"'
   'python = "latest"'
   'ruby = "latest"'

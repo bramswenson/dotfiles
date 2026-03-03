@@ -10,6 +10,9 @@ if [[ $- == *i* ]] && [ -t 0 ]; then
   export GPG_TTY
 fi
 
+# Ensure gpg-agent is running (no-op if already running)
+gpgconf --launch gpg-agent 2>/dev/null
+
 # Set SSH to use gpg-agent
 unset SSH_AGENT_PID
 if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
