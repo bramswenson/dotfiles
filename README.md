@@ -18,7 +18,8 @@ Supports **Linux** (Ubuntu, Fedora, RHEL) and **macOS** (Apple Silicon + Intel).
 gpg --card-status
 
 # 2. Install chezmoi and apply dotfiles
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply bramswenson/dotfiles
+#    --source clones into ~/Code/bramswenson/dotfiles (the canonical working location)
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --source ~/Code/bramswenson/dotfiles bramswenson/dotfiles
 
 # 3. chezmoi will prompt for machine-specific config (hostname, email, work context)
 #    Core configs deploy without secrets. If gpg-agent is working, secrets
@@ -660,7 +661,7 @@ symlinks with real files, so rcm can be removed afterward.
 ```bash
 # 1. Install chezmoi and apply the new dotfiles
 #    chezmoi will overwrite rcm's symlinks with managed files
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply bramswenson/dotfiles
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --source ~/Code/bramswenson/dotfiles bramswenson/dotfiles
 
 # 2. Verify the new shell works
 #    Open a NEW terminal and confirm:
@@ -681,7 +682,7 @@ rm -f ~/.rcrc
 
 | Old (rcm) | New (chezmoi) | Notes |
 |-----------|---------------|-------|
-| `~/.dotfiles/` | `~/.local/share/chezmoi/` | Source directory |
+| `~/.dotfiles/` | `~/Code/bramswenson/dotfiles/` | Source directory (`sourceDir` in `chezmoi.toml`) |
 | `~/.bin/` | `~/.local/bin/` | Scripts location |
 | `~/.bashrc` sources `shell.env` | `~/.bashrc` sources `~/.bramrc` | One-line hook added automatically |
 | `~/.dotfiles/bin/shell.env` | `~/.bramrc.d/*.sh` | Monolithic → modular |
