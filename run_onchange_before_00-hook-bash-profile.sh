@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Ensure ~/.bash_profile sources ~/.bashrc — runs on content change
 set -euo pipefail
 
 BASH_PROFILE="${HOME}/.bash_profile"

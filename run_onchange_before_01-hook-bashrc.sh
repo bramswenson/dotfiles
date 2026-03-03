@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Ensure ~/.bashrc sources ~/.bramrc — runs on content change
 set -euo pipefail
 
 BASHRC="${HOME}/.bashrc"
