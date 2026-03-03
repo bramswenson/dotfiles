@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Bootstrap a remote/headless server with minimal dotfiles.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  # Install chezmoi and apply dotfiles
+  if ! command -v chezmoi &>/dev/null; then
+    sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "${HOME}/.local/bin"
+  fi
+
+  export PATH="${HOME}/.local/bin:${PATH}"
+
+  # Initialize and apply dotfiles
+  chezmoi init --apply bramswenson
+
+  echo "Remote bootstrap complete."
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

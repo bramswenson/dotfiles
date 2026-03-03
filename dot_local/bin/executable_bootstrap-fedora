@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Bootstrap a Fedora workstation for Bram Swenson.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+CORE_PACKAGES="\
+  bind-utils \
+  bridge-utils \
+  bzip2-libs \
+  ca-certificates \
+  curl \
+  dnf-plugins-core \
+  dnsmasq \
+  figlet \
+  fzf \
+  gcc \
+  git \
+  git-filter-repo \
+  git-lfs \
+  gmp-devel \
+  gnome-tweaks \
+  gnupg \
+  gnupg2 \
+  htop \
+  iputils \
+  just \
+  jq \
+  libcanberra-gtk2 \
+  libgtop2-devel \
+  libvirt-client \
+  libvirt-daemon \
+  libxml2-devel \
+  libxslt-devel \
+  libyaml-devel \
+  neovim \
+  openssl-devel \
+  openvpn \
+  pre-commit \
+  python3 \
+  python3-devel \
+  python3-setuptools \
+  qemu-kvm \
+  qemu-kvm-core \
+  readline-devel \
+  ruby \
+  ruby-devel \
+  the_silver_searcher \
+  tmux \
+  toilet \
+  traceroute \
+  tree \
+  unzip \
+  vim \
+  vim-enhanced \
+  zip \
+  zlib \
+"
+
+FLATPAK_PACKAGES="\
+  app/com.discordapp.Discord/x86_64/stable \
+  app/org.signal.Signal/x86_64/stable \
+"
+
+main() {
+  [[ $(id -u) -eq 0 ]] && die "must not run as root"
+
+  local -r bin_dir="${HOME}/.local/bin"
+  export PATH="${bin_dir}:${PATH}"
+
+  sudo dnf upgrade -y
+  sudo dnf group install -y "Fedora Workstation" "Container Management"
+  # shellcheck disable=SC2086
+  sudo dnf install -y ${CORE_PACKAGES}
+  # shellcheck disable=SC2086
+  sudo flatpak install -y ${FLATPAK_PACKAGES} || true
+
+  for script in \
+    install-docker \
+    install-gh-cli \
+    install-google-chrome \
+    install-google-cloud-sdk \
+    install-nerd-fonts \
+    install-postgresql \
+    install-rustlang \
+    install-slack \
+    install-starship-prompt \
+    install-vscode \
+    install-yubikey \
+  ; do
+    if command -v "${script}" &>/dev/null; then
+      "${script}"
+    elif [ -x "${bin_dir}/${script}" ]; then
+      "${bin_dir}/${script}"
+    else
+      echo "WARNING: ${script} not found, skipping"
+    fi
+  done
+
+  for group in docker kvm; do
+    sudo usermod -a -G "${group}" "${USER}" 2>/dev/null || true
+  done
+
+  fix-firefox-yubikey-locking || true
+  sudo dnf upgrade -y
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

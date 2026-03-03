@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Install Google Chrome from official repo.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    if [[ ! -d "/Applications/Google Chrome.app" ]]; then
+      brew install --cask google-chrome
+    fi
+    return 0
+  fi
+
+  if [[ ! -f /etc/apt/keyrings/google.gpg ]]; then
+    curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
+      | sudo gpg --dearmor -o /etc/apt/keyrings/google.gpg
+  fi
+  if ! command -v google-chrome &>/dev/null; then
+    local -r filename="google-chrome-stable_current_amd64.deb"
+    curl -fsSL -o "/tmp/${filename}" "https://dl.google.com/linux/direct/${filename}"
+    sudo apt install --yes --quiet "/tmp/${filename}"
+    rm "/tmp/${filename}"
+  fi
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

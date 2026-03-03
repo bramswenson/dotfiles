@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d] [-k <key_id>]
+
+DESCRIPTION:
+
+  Fix Keybase GPG key stored in legacy trusted.gpg keyring.
+
+OPTIONS:
+
+  -k <key_id>  Alternate key ID (default: ${KEY_ID}).
+  -h           Show this help message.
+  -d           Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  if gpg --no-default-keyring \
+         --keyring=/etc/apt/trusted.gpg \
+         --list-key "${KEY_ID}" &>/dev/null; then
+    sudo gpg --no-default-keyring \
+        --keyring=/etc/apt/trusted.gpg \
+        --output=/etc/apt/keyrings/keybase.gpg \
+        --export "${KEY_ID}" \
+      && sudo gpg --no-default-keyring \
+        --keyring=/etc/apt/trusted.gpg \
+        --yes \
+        --delete-keys "${KEY_ID}"
+  fi
+  if ! grep -q '/etc/apt/keyrings' /etc/apt/sources.list.d/keybase.list 2>/dev/null; then
+    if [[ -e /etc/apt/sources.list.d/keybase.list ]]; then
+      sudo mv /etc/apt/sources.list.d/keybase.list /etc/apt/sources.list.d/keybase.list.bak
+    fi
+    sudo tee /etc/apt/sources.list.d/keybase.list <<EOF
+deb [signed-by=/etc/apt/keyrings/keybase.gpg arch=amd64] http://prerelease.keybase.io/deb stable main
+EOF
+  fi
+}
+
+KEY_ID="47484E50656D16C7"
+
+while getopts "hdk:" opt; do
+  case "${opt}" in
+    k) KEY_ID="${OPTARG}" ;;
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

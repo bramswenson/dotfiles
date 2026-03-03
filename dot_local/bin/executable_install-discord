@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Install Discord.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    if [[ ! -d "/Applications/Discord.app" ]]; then
+      local -r dmg="/tmp/discord.dmg"
+      curl -fsSL -o "${dmg}" "https://discord.com/api/download?platform=osx"
+      hdiutil attach "${dmg}" -nobrowse -quiet
+      cp -R "/Volumes/Discord/Discord.app" /Applications/
+      hdiutil detach "/Volumes/Discord" -quiet
+      rm "${dmg}"
+    fi
+    return 0
+  fi
+
+  if command -v discord &>/dev/null; then
+    return 0
+  fi
+
+  case "$(lsb_release -is 2>/dev/null)" in
+    Ubuntu)
+      curl -fsSL -o /tmp/discord.deb "https://discord.com/api/download?platform=linux&format=deb"
+      sudo apt install --yes --quiet /tmp/discord.deb
+      rm /tmp/discord.deb
+      ;;
+    Fedora)
+      sudo flatpak install -y app/com.discordapp.Discord/x86_64/stable || true
+      ;;
+  esac
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

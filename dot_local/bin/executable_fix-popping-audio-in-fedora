@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Fix audio pops at start of media playback on Fedora.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  echo "0" | sudo tee /sys/module/snd_hda_intel/parameters/power_save
+  echo "options snd_hda_intel power_save=0" \
+    | sudo tee -a /etc/modprobe.d/audio_disable_powersave.conf
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

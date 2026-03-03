@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Install Mozilla VPN client.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    if ! command -v mozillavpn &>/dev/null; then
+      brew install --cask mozilla-vpn
+    fi
+    return 0
+  fi
+
+  if ! command -v mozillavpn &>/dev/null; then
+    sudo add-apt-repository --yes ppa:mozillacorp/mozillavpn
+    sudo apt update --yes --quiet
+    sudo apt install --yes --quiet mozillavpn resolvconf
+  fi
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

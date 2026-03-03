@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Install YubiKey tools and services.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+rhel() {
+  if ! command -v ykman &>/dev/null; then
+    sudo dnf install -y \
+      libyubikey pam-u2f pam_yubico \
+      pcsc-lite-ccid pcsc-lite-libs pcsc-tools \
+      yubikey-personalization-gui yubikey-manager yubico-piv-tool
+    sudo systemctl enable --now pcscd.service
+    sudo systemctl restart pcscd.service
+  fi
+  if [[ ! -d "${HOME}/.yubico-authenticator" ]]; then
+    local -r filename="yubico-authenticator-latest-linux.tar.gz"
+    mkdir -p "${HOME}/.yubico-authenticator"
+    curl -fsSL -o "/tmp/${filename}" \
+      "https://developers.yubico.com/yubioath-flutter/Releases/${filename}"
+    tar -C "${HOME}/.yubico-authenticator" --strip-components=1 -zxf "/tmp/${filename}"
+    "${HOME}/.yubico-authenticator/desktop_integration.sh" -i || true
+    rm "/tmp/${filename}"
+  fi
+}
+
+ubuntu() {
+  if ! command -v ykman &>/dev/null; then
+    sudo add-apt-repository --yes ppa:yubico/stable 2>/dev/null || true
+    sudo apt update --yes --quiet
+    sudo apt install --yes --quiet \
+      libccid libpam-u2f libpam-yubico \
+      libpcsclite1 libpcsclite-dev \
+      pcsc-tools pcscd scdaemon \
+      yubikey-manager
+  fi
+  sudo systemctl enable --now pcscd.service
+  sudo systemctl restart pcscd.service
+}
+
+darwin() {
+  if ! command -v ykman &>/dev/null; then
+    brew install --cask yubico-yubikey-manager
+  fi
+  if ! command -v yubico-authenticator &>/dev/null; then
+    brew install --cask yubico-authenticator
+  fi
+}
+
+main() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    darwin
+    return 0
+  fi
+
+  case "$(lsb_release -is 2>/dev/null)" in
+    RedHatEnterprise|Fedora) rhel ;;
+    Ubuntu) ubuntu ;;
+    *) die "unsupported distro" ;;
+  esac
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

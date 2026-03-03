@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Install Zoom client.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    if [[ ! -d "/Applications/zoom.us.app" ]]; then
+      curl -fsSL -o /tmp/zoomusInstaller.pkg "https://zoom.us/client/latest/zoomusInstaller.pkg"
+      sudo installer -pkg /tmp/zoomusInstaller.pkg -target /
+      rm /tmp/zoomusInstaller.pkg
+    fi
+    return 0
+  fi
+
+  if ! command -v zoom &>/dev/null; then
+    local -r filename="zoom_amd64.deb"
+    curl -fsSL -o "/tmp/${filename}" "https://zoom.us/client/latest/${filename}"
+    sudo apt install --yes --quiet "/tmp/${filename}"
+    rm "/tmp/${filename}"
+  fi
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

@@ -1,0 +1,49 @@
+name: Test dotfiles
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        profile: [home, work, work-remote-ssh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+
+      - name: Install chezmoi and resolve sops binary
+        run: |
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$RUNNER_TEMP/bin"
+          cp "$(mise which sops)" "$RUNNER_TEMP/bin/sops"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Create clean HOME
+        id: home
+        run: |
+          CLEAN_HOME="$(mktemp -d)"
+          echo "path=$CLEAN_HOME" >> "$GITHUB_OUTPUT"
+
+      - name: Apply dotfiles
+        timeout-minutes: 10
+        env:
+          HOME: ${{ steps.home.outputs.path }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+          GNUPGHOME: /tmp/sops-gnupg-ci
+          DOTFILES_PROFILE: ${{ matrix.profile }}
+        run: |
+          mkdir -m 700 -p /tmp/sops-gnupg-ci
+          chezmoi init --apply --promptDefaults --source="$GITHUB_WORKSPACE"
+
+      - name: Run goss tests
+        env:
+          HOME: ${{ steps.home.outputs.path }}
+          GOSS_PROFILE: ${{ matrix.profile }}
+        run: mise run test

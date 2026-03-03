@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Install GitHub CLI from official package repos.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+rhel() {
+  if ! command -v gh &>/dev/null; then
+    sudo dnf install -y 'dnf-command(config-manager)' 2>/dev/null || true
+    sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo 2>/dev/null || true
+    sudo dnf install -y gh --repo gh-cli 2>/dev/null || sudo dnf install -y gh
+  fi
+}
+
+ubuntu() {
+  if ! command -v gh &>/dev/null; then
+    sudo mkdir -p -m 755 /etc/apt/keyrings
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+      | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
+    sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+      | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+    sudo apt update
+    sudo apt install -y gh
+  fi
+}
+
+main() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    if ! command -v gh &>/dev/null; then
+      brew install gh
+    fi
+    return 0
+  fi
+
+  case "$(lsb_release -is 2>/dev/null)" in
+    RedHatEnterprise|Fedora) rhel ;;
+    Ubuntu) ubuntu ;;
+    *) die "unsupported distro" ;;
+  esac
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

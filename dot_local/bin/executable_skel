@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d] [-v <version>]
+
+DESCRIPTION:
+
+  Do stuff in a scripted fashion.
+
+OPTIONS:
+
+  -v <version>  Set the version (required).
+  -h            Show this help message.
+  -d            Enable debug mode.
+
+EXAMPLES:
+
+  ${SCRIPT_NAME} -v 1.0.0
+  ${SCRIPT_NAME} -d -v 2.0.0
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  echo "do stuff with version ${VERSION}"
+}
+
+# Parse options.
+while getopts "hdv:" opt; do
+  case "${opt}" in
+    v) VERSION="${OPTARG}" ;;
+    d) export DEBUG=1; set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+# Validate required options.
+if [ -z "${VERSION:-}" ]; then
+  die "-v <version> is required"
+fi
+
+# Strict mode — only after parsing and validation.
+set -euo pipefail
+
+main

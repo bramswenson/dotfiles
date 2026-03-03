@@ -1,0 +1,28 @@
+# List of allowed ssh keys.  Only keys present in this file are used
+# in the SSH protocol.  The ssh-add tool may add new entries to this
+# file to enable them; you may also add them manually.  Comment
+# lines, like this one, as well as empty lines are ignored.  Lines do
+# have a certain length limit but this is not serious limitation as
+# the format of the entries is fixed and checked by gpg-agent. A
+# non-comment line starts with optional white spaces, followed by the
+# keygrip of the key given as 40 hex digits, optionally followed by a
+# caching TTL in seconds, and another optional field for arbitrary
+# flags.   Prepend the keygrip with an '!' mark to disable it.
+
+# RSA key added on: 2017-02-16 13:29:57
+# MD5 Fingerprint:  0a:fc:8a:22:87:fe:a0:52:8e:84:31:ae:9c:72:12:88
+EA01D60EAB81762CCF06CB538DE06D3C482CCA43 0
+# RSA key added on: 2017-02-16 13:30:17
+# MD5 Fingerprint:  32:c5:92:2b:fe:d1:6a:c9:48:70:8f:bd:ef:8d:59:6a
+2A9F79F51692FE5A7139B579D6B18D27CDB79FF9 0
+# RSA key added on: 2017-02-16 15:27:36
+# MD5 Fingerprint:  b4:69:c6:29:8c:c6:3c:59:b4:8b:23:0d:2a:b0:d4:5d
+B409BBCBFC1426B0DA37EB68397123A43EFA0985 0
+# RSA key added on: 2018-03-10 09:49:43
+# Fingerprints:  MD5:a3:9e:e7:b8:f6:29:bf:22:37:bd:39:af:be:d0:af:5b
+#                SHA256:dCNtqxV8g665wWuix9d2BYXoG62i7zIZguauoXQMMdg
+9A9A25D3F4307C57B6F625896BC4CF1D2D38FD31 0
+# RSA key added on: 2018-03-10 09:50:07
+# Fingerprints:  MD5:34:3e:64:a7:d9:23:1a:31:95:d5:04:0b:e6:30:4a:34
+#                SHA256:WRjdHg053dxaSXarTcE3FU7tnr57nEpnedTtTs4faVA
+7F3FE2E915D3521AE2831E0CA3EF151AF045128F 0

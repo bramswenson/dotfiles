@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d] [-v <version>]
+
+DESCRIPTION:
+
+  Install PostgreSQL from package repo.
+
+OPTIONS:
+
+  -v <version>  Major version (default: ${VERSION}).
+  -h            Show this help message.
+  -d            Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+fedora() {
+  if [[ ! -f /etc/yum.repos.d/pgdg-fedora-all.repo ]]; then
+    sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/F-39-x86_64/pgdg-fedora-repo-latest.noarch.rpm
+  fi
+  if ! command -v psql &>/dev/null; then
+    sudo dnf install -y "postgresql${VERSION}-server"
+    sudo "/usr/pgsql-${VERSION}/bin/postgresql-${VERSION}-setup" initdb
+    sudo systemctl enable --now "postgresql-${VERSION}"
+  fi
+}
+
+rhel() {
+  if [[ ! -f /etc/yum.repos.d/pgdg-redhat-all.repo ]]; then
+    sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+  fi
+  if ! command -v psql &>/dev/null; then
+    sudo dnf -qy module disable postgresql
+    sudo dnf install -y "postgresql${VERSION}-server"
+    sudo "/usr/pgsql-${VERSION}/bin/postgresql-${VERSION}-setup" initdb
+    sudo systemctl enable --now "postgresql-${VERSION}"
+  fi
+}
+
+ubuntu() {
+  if [[ ! -f /etc/apt/keyrings/pgdg.gpg ]]; then
+    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+      | sudo gpg --dearmor --yes -o /etc/apt/keyrings/pgdg.gpg
+  fi
+  if [[ ! -f /etc/apt/sources.list.d/pgdg.list ]]; then
+    sudo tee /etc/apt/sources.list.d/pgdg.list <<EOF
+deb [signed-by=/etc/apt/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main
+EOF
+    sudo apt-get update --yes --quiet
+  fi
+  if ! command -v psql &>/dev/null; then
+    sudo apt install --yes --quiet "postgresql-${VERSION}"
+  fi
+  sudo systemctl disable --now postgresql.service 2>/dev/null || true
+}
+
+main() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    if ! command -v psql &>/dev/null; then
+      brew install "postgresql@${VERSION}"
+    fi
+    return 0
+  fi
+
+  case "$(lsb_release -is 2>/dev/null)" in
+    RedHatEnterprise) rhel ;;
+    Ubuntu) ubuntu ;;
+    Fedora) fedora ;;
+    *) die "unsupported distro" ;;
+  esac
+}
+
+VERSION="17"
+
+while getopts "hdv:" opt; do
+  case "${opt}" in
+    v) VERSION="${OPTARG}" ;;
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

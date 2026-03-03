@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Bootstrap an Ubuntu workstation for Bram Swenson.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+CORE_PACKAGES="\
+  bridge-utils \
+  build-essential \
+  ca-certificates \
+  cpu-checker \
+  curl \
+  dnsutils \
+  figlet \
+  git \
+  git-filter-repo \
+  git-lfs \
+  gnome-tweaks \
+  gnupg2 \
+  gnupg-agent \
+  htop \
+  iputils-ping \
+  iputils-tracepath \
+  jq \
+  lib32z1 \
+  libgmp-dev \
+  libreadline-dev \
+  libssl-dev \
+  libxslt-dev \
+  libxml2-dev \
+  libyaml-dev \
+  lsb-release \
+  neovim \
+  openvpn \
+  pipx \
+  pre-commit \
+  python3-dev \
+  python3-setuptools \
+  python3-pip \
+  ruby-dev \
+  ruby-standalone \
+  silversearcher-ag \
+  software-properties-common \
+  tree \
+  toilet \
+  toilet-fonts \
+  tmux \
+  unzip \
+  vim \
+  vim-gtk3 \
+  zip \
+"
+
+main() {
+  [[ $(id -u) -eq 0 ]] && die "must not run as root"
+
+  local -r bin_dir="${HOME}/.local/bin"
+  export PATH="${bin_dir}:${PATH}"
+
+  sudo apt update -y
+  sudo apt upgrade -y
+  # shellcheck disable=SC2086
+  sudo apt install --yes --quiet ${CORE_PACKAGES}
+
+  for script in \
+    install-aws-cli \
+    install-discord \
+    install-docker \
+    install-firefox \
+    install-gh-cli \
+    install-google-chrome \
+    install-google-cloud-sdk \
+    install-just \
+    install-mozillavpn \
+    install-nerd-fonts \
+    install-postgresql \
+    install-rustlang \
+    install-slack \
+    install-signal \
+    install-starship-prompt \
+    install-vscode \
+    install-yubikey \
+  ; do
+    if command -v "${script}" &>/dev/null; then
+      "${script}"
+    elif [ -x "${bin_dir}/${script}" ]; then
+      "${bin_dir}/${script}"
+    else
+      echo "WARNING: ${script} not found, skipping"
+    fi
+  done
+
+  # User groups
+  for group in docker kvm; do
+    sudo usermod -a -G "${group}" "${USER}" 2>/dev/null || true
+  done
+
+  # Ubuntu drivers
+  sudo ubuntu-drivers list --recommended 2>/dev/null \
+    | cut -d' ' -f1 \
+    | xargs sudo ubuntu-drivers install 2>/dev/null || true
+
+  sudo apt upgrade -y
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

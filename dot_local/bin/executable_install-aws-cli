@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d] [-f]
+
+DESCRIPTION:
+
+  Install AWS CLI v2.
+
+OPTIONS:
+
+  -f  Force reinstall even if already installed.
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  if command -v aws &>/dev/null && [ "${FORCE_INSTALL}" -eq 0 ]; then
+    echo "AWS CLI already installed. Use -f to force re-install."
+    return 0
+  fi
+
+  if [[ "$(uname)" == "Darwin" ]]; then
+    curl -fsSL -o /tmp/AWSCLIV2.pkg "https://awscli.amazonaws.com/AWSCLIV2.pkg"
+    sudo installer -pkg /tmp/AWSCLIV2.pkg -target /
+    rm /tmp/AWSCLIV2.pkg
+    return 0
+  fi
+
+  local arch
+  case "$(uname -m)" in
+    aarch64|arm64) arch="aarch64" ;;
+    *)             arch="x86_64" ;;
+  esac
+  local -r url="https://awscli.amazonaws.com/awscli-exe-linux-${arch}.zip"
+  local -r filename="/tmp/awscli.zip"
+  curl -fsSL -o "${filename}" "${url}"
+  pushd /tmp >/dev/null
+    unzip -fo awscli.zip
+    sudo ./aws/install --update
+  popd >/dev/null
+  rm -rf /tmp/awscli.zip /tmp/aws
+}
+
+FORCE_INSTALL=0
+
+while getopts "hdf" opt; do
+  case "${opt}" in
+    f) FORCE_INSTALL=1 ;;
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

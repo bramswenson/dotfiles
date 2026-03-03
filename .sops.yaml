@@ -1,0 +1,5 @@
+creation_rules:
+  - path_regex: private_dot_ssh/config\.d/.*\.yaml$
+    pgp: D3B9C00B365DC5B752A6554A0630571A396BC2A7
+    age: age19y6yumy8dwe9sdtku9s3y37hznw5fcx3u3y5ve2xcnym362r5fkq8a8aa0
+  - pgp: D3B9C00B365DC5B752A6554A0630571A396BC2A7

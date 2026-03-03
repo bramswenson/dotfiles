@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d] [-k <key_ids>]
+
+DESCRIPTION:
+
+  Fix Slack GPG keys stored in legacy trusted.gpg keyring.
+
+OPTIONS:
+
+  -k <key_ids>  Space-separated key IDs (default: ${KEY_IDS}).
+  -h            Show this help message.
+  -d            Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+main() {
+  for key_id in ${KEY_IDS}; do
+    if gpg --no-default-keyring \
+           --keyring=/etc/apt/trusted.gpg \
+           --list-key "${key_id}" &>/dev/null; then
+      sudo gpg --no-default-keyring \
+          --keyring=/etc/apt/trusted.gpg \
+          --output=/etc/apt/keyrings/slack.gpg \
+          --export "${key_id}" \
+        && sudo gpg --no-default-keyring \
+          --keyring=/etc/apt/trusted.gpg \
+          --yes \
+          --delete-keys "${key_id}"
+    fi
+  done
+  if ! grep -q '/etc/apt/keyrings' /etc/apt/sources.list.d/slack.list 2>/dev/null; then
+    if [[ -e /etc/apt/sources.list.d/slack.list ]]; then
+      sudo mv /etc/apt/sources.list.d/slack.list /etc/apt/sources.list.d/slack.list.bak
+    fi
+    sudo tee /etc/apt/sources.list.d/slack.list <<EOF
+deb [signed-by=/etc/apt/keyrings/slack.gpg] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main
+EOF
+  fi
+}
+
+KEY_IDS="0xC2E73424D59097AB 0xD938EC0D038651BD" # gitleaks:allow (public apt signing key fingerprints)
+
+while getopts "hdk:" opt; do
+  case "${opt}" in
+    k) KEY_IDS="${OPTARG}" ;;
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

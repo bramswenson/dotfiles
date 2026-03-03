@@ -1,0 +1,11 @@
+{{- $name := promptStringOnce . "name" "Full name" "Bram Swenson" -}}
+{{- $email := promptStringOnce . "email" "Email address" "bram@craniumisajar.com" -}}
+{{- $profileDefault := env "DOTFILES_PROFILE" | default "home" -}}
+{{- $profile := promptChoiceOnce . "profile" "Profile" (list "home" "work" "work-remote-ssh") $profileDefault -}}
+{{- $gpgSigningKey := promptStringOnce . "gpg_signing_key" "GPG signing key ID" "0x39FA41E38BDF14DE" -}}
+
+[data]
+  name = {{ $name | quote }}
+  email = {{ $email | quote }}
+  profile = {{ $profile | quote }}
+  gpg_signing_key = {{ $gpgSigningKey | quote }}

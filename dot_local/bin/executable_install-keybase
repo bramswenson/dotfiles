@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+SCRIPT_NAME="$(basename "$0")"
+
+show_help() {
+  cat <<EOF
+Usage: ${SCRIPT_NAME} [-h] [-d]
+
+DESCRIPTION:
+
+  Install Keybase from package repo.
+
+OPTIONS:
+
+  -h  Show this help message.
+  -d  Enable debug mode.
+
+EOF
+}
+
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+fedora() {
+  if ! command -v keybase &>/dev/null; then
+    sudo dnf install -y https://prerelease.keybase.io/keybase_amd64.rpm
+    run_keybase || true
+  fi
+}
+
+ubuntu() {
+  if ! command -v keybase &>/dev/null; then
+    curl -sSfL -o /tmp/keybase_amd64.deb https://prerelease.keybase.io/keybase_amd64.deb
+    sudo apt install -y /tmp/keybase_amd64.deb
+    rm /tmp/keybase_amd64.deb
+    run_keybase || true
+  fi
+}
+
+darwin() {
+  if [[ ! -d "/Applications/Keybase.app" ]]; then
+    local -r dmg="/tmp/Keybase.dmg"
+    curl -fsSL -o "${dmg}" "https://prerelease.keybase.io/Keybase.dmg"
+    hdiutil attach "${dmg}" -nobrowse -quiet
+    cp -R "/Volumes/Keybase/Keybase.app" /Applications/
+    hdiutil detach "/Volumes/Keybase" -quiet
+    rm "${dmg}"
+  fi
+}
+
+main() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    darwin
+    return 0
+  fi
+
+  case "$(lsb_release -is 2>/dev/null)" in
+    RedHatEnterprise|Fedora) fedora ;;
+    Ubuntu) ubuntu ;;
+    *) die "unsupported distro" ;;
+  esac
+}
+
+while getopts "hd" opt; do
+  case "${opt}" in
+    d) set -x ;;
+    h) show_help; exit 0 ;;
+    *) show_help; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+set -euo pipefail
+
+main

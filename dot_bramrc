@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# ~/.bramrc — main shell configuration entry point
+# Sourced by ~/.bashrc after system defaults
+
+# Source all configuration modules
+if [ -d "${HOME}/.bramrc.d" ]; then
+  for rc in "${HOME}/.bramrc.d"/*.sh; do
+    [ -f "${rc}" ] && source "${rc}"
+  done
+  unset rc
+fi

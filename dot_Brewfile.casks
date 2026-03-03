@@ -1,0 +1,18 @@
+# Brewfile.casks — macOS GUI apps via Homebrew casks
+# Managed by chezmoi
+# Installed by bootstrap-macos (not in CI)
+
+# Apps
+cask "discord"
+cask "docker"
+cask "firefox"
+cask "google-chrome"
+cask "signal"
+cask "slack"
+cask "visual-studio-code"
+cask "zoom"
+
+# Fonts
+cask "font-fira-code-nerd-font"
+cask "font-jetbrains-mono-nerd-font"
+cask "font-hack-nerd-font"

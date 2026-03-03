@@ -1,0 +1,25 @@
+# ~/.gnupg/gpg-agent.conf
+
+log-file ~/.gnupg/gpg-agent.log
+
+enable-ssh-support
+{{- if eq .chezmoi.os "darwin" }}
+pinentry-program /opt/homebrew/bin/pinentry-mac
+{{- else if stat "/usr/bin/pinentry-gnome3" }}
+pinentry-program /usr/bin/pinentry-gnome3
+{{- else if stat "/usr/bin/pinentry-curses" }}
+pinentry-program /usr/bin/pinentry-curses
+{{- else }}
+pinentry-program /usr/bin/pinentry
+{{- end }}
+
+# Set one hours default PIN cache and two hour max PIN cache timeouts
+default-cache-ttl-ssh  3600
+default-cache-ttl      3600
+max-cache-ttl-ssh      7200
+max-cache-ttl          7200
+
+keep-display
+extra-socket ~/.gnupg/S.gpg-agent.remote
+
+allow-preset-passphrase
