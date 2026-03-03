@@ -69,6 +69,7 @@ format = '[ via $symbol $version]($style)'
 symbol = ""
 style = "fg:#9ece6a"
 format = '[ via $symbol $version]($style)'
+detect_variables = []
 
 [kubernetes]
 disabled = false
