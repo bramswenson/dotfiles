@@ -3,6 +3,16 @@ MIGRATION_PLAN.md
 LICENSE
 .github/
 
+# Repo-only files (not deployed to home)
+goss.yaml
+hk.pkl
+mise.toml
+secrets.yaml
+public_keys/
+.gitleaksignore
+.gitignore
+.sops.yaml
+
 # SOPS-encrypted source files (data only, not deploy targets)
 .ssh/config.d/*.yaml
 
