@@ -16,7 +16,7 @@ $kubernetes\
 $docker_context\
 $package\
 $line_break\
-[╰─](fg:#394260)$character"""
+[╰─ ](fg:#394260)$character"""
 
 right_format = """$cmd_duration$time"""
 
